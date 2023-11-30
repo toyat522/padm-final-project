@@ -1,0 +1,54 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global}
+    \entry{Cui1}{article}{}
+      \name{author}{1}{}{%
+        {{hash=01472dcda2b2ae621e1173aeeb6ef0c4}{%
+           family={Cui},
+           familyi={C\bibinitperiod},
+           given={Tianhong},
+           giveni={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{01472dcda2b2ae621e1173aeeb6ef0c4}
+      \strng{fullhash}{01472dcda2b2ae621e1173aeeb6ef0c4}
+      \strng{bibnamehash}{01472dcda2b2ae621e1173aeeb6ef0c4}
+      \strng{authorbibnamehash}{01472dcda2b2ae621e1173aeeb6ef0c4}
+      \strng{authornamehash}{01472dcda2b2ae621e1173aeeb6ef0c4}
+      \strng{authorfullhash}{01472dcda2b2ae621e1173aeeb6ef0c4}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Research}
+      \field{title}{Research: The First {S}cience {P}artner {J}ournal}
+      \field{type}{Journal Article}
+      \field{volume}{2018}
+      \field{year}{2018}
+      \field{pages}{1}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1155/2018/1340806
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

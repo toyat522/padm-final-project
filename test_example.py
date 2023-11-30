@@ -92,6 +92,8 @@ def main():
 
     """ THIRD CHUNK OF CODE: MOVING THE ROBOT ARM """
 
+    # TODO: HOW TO CHECK FOR COLLISION WITHOUT "ACTUALLY" MOVING THE ARM?
+
 #    print("Going to use IK to go from a sample start state to a goal state\n")
 #    for i in range(2):
 #        print('Iteration:', i)
@@ -133,9 +135,10 @@ def main():
     world.open_drawer()
 
 
+
     """ FIFTH CHUNK OF CODE: TRANSLATING THE ENTIRE ROBOT """
 
-    print("Going to operate the base without collision checking")
+    print("Going to operate the base WITH collision checking")
     i = 0
     while True:
         goal_pos = translate_linearly(world, 0.01)
@@ -143,6 +146,8 @@ def main():
         time.sleep(TRANSLATE_SLEEP) # Add for visual purposes
         if (i % 30 == 0):
             wait_for_user()
+        if pairwise_collision(world.robot, world.kitchen):
+            break
         i += 1
     wait_for_user()
     world.destroy()

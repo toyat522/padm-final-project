@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{authblk}
+\usepackage{setspace}
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx}
+\graphicspath{ {./figures/} }
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{lineno}
+\usepackage[style=nejm, citestyle=numeric-comp, sorting=none]{biblatex}
+\addbibresource{main.bib}
+
+%%%%%% Document Setup %%%%%%
+
+\title{6.4132/16.413 Principles of Autonomy and Decision Making Final Project}
+\author[ ]{Toya Takahashi}
+\affil[ ]{Massachusetts Institute of Technology}
+\affil[ ]{Department of Aeronautics and Astronautics}
+\onehalfspacing
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Activity planing, motion planning, and trajectory optimization for a robotic arm is challenging. To navigate around an environment, the agent must perform a state space search to plan a sequence of actions and generate a trajectory by either using a sample based planner (e.g. PRM, RRT, RRT*) or modeling the problem as a constraint optimization problem. This paper explores 1) defining an activity planning problem with the Planning Domain Definition Language (PDDL), 2) implementing the Fast-Forward (FF) heuristic planner with Enforced Hill Climbing to solve this activity planning problem, 3) using RRT with goal-biasing to generate the trajectory for the robotic arm, and 4) comparing the results with the trajectory generated from constraint optimization. The kitchen simulation environment used in this paper provides an excellent sandbox for testing and demonstrating the effectiveness of the proposed approach, in addition to learning the benefits and drawbacks of the implemented algorithms.
+
+\section{Activity Planning}
+
+
+
+\section{Motion Planning}
+
+
+
+\section{Trajectory Optimization}
+
+
+
+%%% TODO: EDIT REFERENCES %%%
+\cite{Cui1}
+
+
+
+\section{Conclusion}
+
+\printbibliography
+
+\end{document}

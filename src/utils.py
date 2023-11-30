@@ -203,6 +203,12 @@ ALL_JOINTS = ZED_LEFT_JOINTS
 
 ################################################################################
 
+def add_ycb(world, ycb_type, idx=0, counter=0, **kwargs):
+    name = name_from_type(ycb_type, idx)
+    world.add_body(name, color=np.ones(4))
+    pose2d_on_surface(world, name, COUNTERS[counter], **kwargs)
+    return name
+
 def ycb_type_from_file(path):
     return path.split('_', 1)[-1]
 

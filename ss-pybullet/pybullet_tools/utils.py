@@ -75,6 +75,12 @@ BLOCK_URDF = "models/drake/objects/block_for_pick_and_place_mid_size.urdf"
 SINK_URDF = 'models/sink.urdf'
 STOVE_URDF = 'models/stove.urdf'
 
+def add_ycb(world, ycb_type, idx=0, counter=0, **kwargs):
+    name = name_from_type(ycb_type, idx)
+    world.add_body(name, color=np.ones(4))
+    pose2d_on_surface(world, name, COUNTERS[counter], **kwargs)
+    return name
+
 #####################################
 
 # I/O

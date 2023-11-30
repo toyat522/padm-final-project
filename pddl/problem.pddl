@@ -5,10 +5,10 @@
     (:objects 
         sugar - box
         spam - box
-        burner - storage
-        countertop - storage
-        drawer - storage
-        cabinet - storage
+        burner - static
+        countertop - static
+        drawer - openable
+        cabinet - openable
     )
 
     (:init
@@ -19,9 +19,6 @@
         (not_grasping_any)
         (closed drawer)
         (closed cabinet)
-
-        (openable drawer)
-        (openable cabinet)
     )
 
     (:goal (and

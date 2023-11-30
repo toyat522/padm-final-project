@@ -1,10 +1,12 @@
 (define 
     (domain kitchen)
-    (:requirements :strips :typing :disjunctive-preconditions)
+    (:requirements :strips :typing)
 
     (:types
-        storage
-        box
+        storage - object
+        box - object
+        static - storage
+        openable - storage
     )
 
     (:predicates
@@ -12,7 +14,6 @@
         (grasping ?b - box)
         (not_placed_any ?s - storage)
         (placed ?b - box ?s - storage)
-        (openable ?s - storage)
         (open ?s - storage)
         (closed ?s - storage)
     )
@@ -55,12 +56,26 @@
         )
     )
 
-    (:action place
-        :parameters (?b - box ?s - storage)
+    (:action place_static
+        :parameters (?b - box ?s - static)
         :precondition (and 
             (not_placed_any ?s)
             (grasping ?b)
-            (imply (openable ?s) (open ?s))
+        )
+        :effect (and 
+            (not (grasping ?b))
+            (not_grasping_any)
+            (not (not_placed_any ?s))
+            (placed ?b ?s)
+        )
+    )
+
+    (:action place_openable
+        :parameters (?b - box ?s - openable)
+        :precondition (and 
+            (not_placed_any ?s)
+            (grasping ?b)
+            (open ?s)
         )
         :effect (and 
             (not (grasping ?b))

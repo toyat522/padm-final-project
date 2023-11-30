@@ -8,6 +8,7 @@
 \usepackage{subcaption}
 \usepackage{amsmath}
 \usepackage{lineno}
+\usepackage{tikz-cd}
 \usepackage[style=nejm, citestyle=numeric-comp, sorting=none]{biblatex}
 \addbibresource{main.bib}
 
@@ -19,6 +20,8 @@
 \affil[ ]{Department of Aeronautics and Astronautics}
 \onehalfspacing
 
+%%%%%% Main Text %%%%%%
+
 \begin{document}
 
 \maketitle
@@ -29,20 +32,40 @@ Activity planing, motion planning, and trajectory optimization for a robotic arm
 
 \section{Activity Planning}
 
+\subsection{PDDL Domain and Problem}
 
+\begin{figure}[h]
+    % https://q.uiver.app/#q=WzAsNSxbMSwwLCJcXHRleHR7b2JqZWN0fSJdLFswLDMsIlxcdGV4dHtzdG9yYWdlfSJdLFsyLDMsIlxcdGV4dHtib3h9Il0sWzAsNiwiXFx0ZXh0e3N0YXRpY30iXSxbMSw2LCJcXHRleHR7b3BlbmFibGV9Il0sWzEsMCwiXFx0ZXh0e2V4dGVuZHN9Il0sWzIsMCwiXFx0ZXh0e2V4dGVuZHN9IiwyXSxbNCwxLCJcXHRleHR7ZXh0ZW5kc30iLDJdLFszLDEsIlxcdGV4dHtleHRlbmRzfSJdXQ==
+    \[\begin{tikzcd}
+        & {\text{object}} \\
+        \\
+        \\
+        {\text{storage}} && {\text{box}} \\
+        \\
+        \\
+        {\text{static}} & {\text{openable}}
+        \arrow["{\text{extends}}", from=4-1, to=1-2]
+        \arrow["{\text{extends}}"', from=4-3, to=1-2]
+        \arrow["{\text{extends}}"', from=7-2, to=4-1]
+        \arrow["{\text{extends}}", from=7-1, to=4-1]
+    \end{tikzcd}\]
+
+    \caption{Short title of the figure. The figure legend should begin with a title (an overall description of the figure) followed by additional text. Each legend should be placed immediately after its corresponding figure.}
+    \label{fig:types}
+\end{figure}
+
+\subsection{Fast-Forward Heuristic Planner}
+
+\subsubsection{Heuristic Calculation}
+
+\subsubsection{Enforced Hill Climbing}
 
 \section{Motion Planning}
 
-
-
 \section{Trajectory Optimization}
-
-
 
 %%% TODO: EDIT REFERENCES %%%
 \cite{Cui1}
-
-
 
 \section{Conclusion}
 

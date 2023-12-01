@@ -14,8 +14,8 @@
         (grasping ?b - box)
         (not_placed_any ?s - storage)
         (placed ?b - box ?s - storage)
-        (open ?s - storage)
-        (closed ?s - storage)
+        (open ?s - openable)
+        (closed ?s - openable)
     )
 
     (:action open_storage
@@ -42,11 +42,26 @@
         )
     )
 
-    (:action pick_up
-        :parameters (?b - box ?s - storage)
+    (:action pick_up_static
+        :parameters (?b - box ?s - static)
         :precondition (and 
             (not_grasping_any)
             (placed ?b ?s)
+        )
+        :effect (and 
+            (not (placed ?b ?s))
+            (not_placed_any ?s)
+            (not (not_grasping_any))
+            (grasping ?b)
+        )
+    )
+
+    (:action pick_up_openable 
+        :parameters (?b - box ?s - openable)
+        :precondition (and 
+            (not_grasping_any)
+            (placed ?b ?s)
+            (open ?s)
         )
         :effect (and 
             (not (placed ?b ?s))

@@ -3,17 +3,16 @@ from pddl_parser.PDDL import PDDL_Parser
 class Planner:
 
     # -----------------------------------------------
-    # Solve FF
+    # Solve FF (CUSTOM PLANNER)
     # -----------------------------------------------
 
     def calculate_hff(self, state, goal, ground_actions):
         hff = 0
         new_state = state
-        while not goal.issubset(state):
+        while not goal.issubset(new_state):
             for act in ground_actions:
-                if act.positive_preconditions.issubset(state):
+                if act.positive_preconditions.issubset(new_state):
                     new_state = new_state.union(act.add_effects) # Just compute the union, since no delete effects are considered
-            state = new_state
             hff += 1
         return hff
 
@@ -40,7 +39,6 @@ class Planner:
         # Search
         plan = []
         while not goal.issubset(state):
-
             curr_hff = self.calculate_hff(state, goal, ground_actions)
 
             # Greedy search
@@ -79,7 +77,7 @@ class Planner:
         return plan
 
     # -----------------------------------------------
-    # Solve BFS
+    # Solve BFS (EXAMPLE PLANNER)
     # -----------------------------------------------
 
     def solve_bfs(self, domain, problem):
@@ -146,6 +144,7 @@ if __name__ == '__main__':
     verbose = True
     planner = Planner()
     plan = planner.solve_ff(domain, problem)
+    #plan = planner.solve_bfs(domain, problem)
     print('Time: ' + str(time.time() - start_time) + 's')
     if type(plan) is list:
         print('plan:')

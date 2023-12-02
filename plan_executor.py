@@ -24,17 +24,10 @@ from src.utils import JOINT_TEMPLATE, BLOCK_SIZES, BLOCK_COLORS, COUNTERS, \
 
 """ CONSTANT DECLARATION """
 
-SUGAR_BOX_POSE = (-0.15, 0.65, np.pi / 4) # Starting position of sugar box
-SPAM_BOX_POSE  = (0.2, 1.1, np.pi / 4)    # Starting position of spam box
-MOVE_SLEEP     = 0.03                     # Sleep time for translation (for animation purposes)
-POS_STEP_SIZE  = 0.01                     # Step size of robot arm interpolation and RRT
-
-GRAB_SUGAR_JOINT    = (-0.07, np.pi / 2, np.pi, 0, np.pi / 4, np.pi, np.pi)
-PLACE_SUGAR_JOINT   = (-np.pi / 5, np.pi / 2, np.pi, 0, np.pi / 4, np.pi, np.pi)
-GRAB_SPAM_JOINT     = (-np.pi / 5 + 0.05, 7 * np.pi / 40, 0, -12 * np.pi / 20, -3 * np.pi / 4, 3 * np.pi / 4, np.pi)
-DRAWER_CLOSED_JOINT = (-7 * np.pi / 10 + 0.05, 3 * np.pi / 5, 5 * np.pi / 12 + 0.05, -3 * np.pi / 5, -3 * np.pi / 4, 3 * np.pi / 4, np.pi)
-DRAWER_OPEN_JOINT   = (-np.pi + 0.2, 3 * np.pi / 5, np.pi / 3, -3 * np.pi / 4 + 0.1, -3 * np.pi / 4, 7 * np.pi / 8, np.pi)
-STORE_SPAM_JOINT    = (-7 * np.pi / 8 + 0.2, 3 * np.pi / 8, np.pi / 2, -3 * np.pi / 4, -np.pi / 4, 7 * np.pi / 8, np.pi)
+SUGAR_BOX_POSE  = (-0.2, 0.65, np.pi / 4) # Starting position of sugar box
+SPAM_BOX_POSE   = (0.2, 1.1, np.pi / 4)   # Starting position of spam box
+MOVE_SLEEP      = 0.03                    # Sleep time for translation (for animation purposes)
+POS_STEP_SIZE   = 0.01                    # Step size of robot arm interpolation and RRT
 
 add_sugar_box = lambda world, **kwargs: add_ycb(world, 'sugar_box', **kwargs)
 add_spam_box = lambda world, **kwargs: add_ycb(world, 'potted_meat_can', **kwargs)
@@ -56,6 +49,7 @@ def main():
     spam_box_pose = get_pose(world.get_body(spam_box))
     print("Sugar box pose:", sugar_box_pose)
     print("Spam box pose:", spam_box_pose)
+    wait_for_user()
 
 
 
@@ -106,17 +100,17 @@ def main():
 #
 #    """ FOURTH CHUNK OF CODE: CHECKING DIFFERENT FUNCTIONS """
 #
-    wait_for_user()
-    print("Open gripper")
-    world.open_gripper()
+#    wait_for_user()
+#    print("Open gripper")
+#    world.open_gripper()
 #
 #    wait_for_user()
 #    print("Close gripper")
 #    world.close_gripper()
 #
 #    wait_for_user()
-    print("Open drawer")
-    world.open_drawer()
+#    print("Open drawer")
+#    world.open_drawer()
 #
 #
 #
@@ -136,48 +130,43 @@ def main():
 #            break
 #        i += 1
 
-    for _ in range(45):
+    for _ in range(50):
         goal_pos = rotate_robot(world, -0.01)
         set_joint_positions(world.robot, world.base_joints, goal_pos)
         time.sleep(MOVE_SLEEP)
-    for _ in range(140):
+    for _ in range(135):
         goal_pos = translate_linearly(world, 0.01)
         set_joint_positions(world.robot, world.base_joints, goal_pos)
         time.sleep(MOVE_SLEEP)
-    for _ in range(45):
+    for _ in range(50):
         goal_pos = rotate_robot(world, 0.01)
         set_joint_positions(world.robot, world.base_joints, goal_pos)
         time.sleep(MOVE_SLEEP)
 
     """ SIXTH CHUNK OF CODE: MOVE ARM TO OBJECTS """
     
+    wait_for_user()
     ik_joints = get_ik_joints(world.robot, PANDA_INFO, tool_link)
     start_pose = get_link_pose(world.robot, tool_link)
     print("Start pose:", start_pose)
 
-    print("Grab sugar box")
-    wait_for_user()
-    set_joint_positions(world.robot, ik_joints, GRAB_SUGAR_JOINT)
+    # Move to spam box
+    for pose in interpolate_poses(start_pose, spam_box_pose, pos_step_size=0.01):
+        conf = next(closest_inverse_kinematics(world.robot, PANDA_INFO, tool_link, pose, max_time=0.05), None)
+        if conf is None:
+            print('Failure!')
+            wait_for_user()
+            break
+        set_joint_positions(world.robot, ik_joints, conf)
 
-    print("Place sugar box")
-    wait_for_user()
-    set_joint_positions(world.robot, ik_joints, PLACE_SUGAR_JOINT)
-
-    print("Grab spam box")
-    wait_for_user()
-    set_joint_positions(world.robot, ik_joints, GRAB_SPAM_JOINT)
-
-    print("Move to closed drawer")
-    wait_for_user()
-    set_joint_positions(world.robot, ik_joints, DRAWER_CLOSED_JOINT)
-
-    print("Move to open drawer")
-    wait_for_user()
-    set_joint_positions(world.robot, ik_joints, DRAWER_OPEN_JOINT)
-
-    print("Place spam in drawer")
-    wait_for_user()
-    set_joint_positions(world.robot, ik_joints, STORE_SPAM_JOINT)
+    # Move to sugar box
+    for pose in interpolate_poses(start_pose, sugar_box_pose, pos_step_size=0.01):
+        conf = next(closest_inverse_kinematics(world.robot, PANDA_INFO, tool_link, pose, max_time=0.05), None)
+        if conf is None:
+            print('Failure!')
+            wait_for_user()
+            break
+        set_joint_positions(world.robot, ik_joints, conf)
 
     wait_for_user()
     world.destroy()

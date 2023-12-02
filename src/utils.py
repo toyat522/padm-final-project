@@ -11,13 +11,14 @@ from collections import namedtuple
 
 from pybullet_tools.pr2_primitives import Conf
 from pybullet_tools.pr2_utils import get_top_grasps, get_side_grasps, close_until_collision
-from pybullet_tools.utils import joints_from_names, joint_from_name, Attachment, link_from_name, get_unit_vector, \
-    unit_pose, BodySaver, multiply, Pose, \
+from pybullet_tools.utils import joint_from_name, Attachment, link_from_name, get_unit_vector, \
+    unit_pose, BodySaver, multiply, Pose, Point, stable_z_on_aabb, \
     get_link_subtree, clone_body, get_all_links, invert, get_link_pose, set_pose, interpolate_poses, set_color, LockRenderer, get_body_name, randomize, unit_point, create_obj, BASE_LINK, get_link_descendants, \
     get_aabb, get_collision_data, point_from_pose, get_data_pose, get_data_extents, AABB, \
     apply_affine, get_aabb_vertices, aabb_from_points, read_obj, tform_mesh, create_attachment, draw_point, \
     child_link_from_joint, is_placed_on_aabb, pairwise_collision, flatten_links, has_link, get_difference_fn, Euler, approximate_as_prism, \
     get_joint_positions, implies, unit_from_theta
+from pybullet_tools.utils import CIRCULAR_LIMITS, get_custom_limits, interval_generator, get_link_pose, interpolate_poses
 
 MODELS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, 'models/')
 
@@ -208,6 +209,25 @@ def add_ycb(world, ycb_type, idx=0, counter=0, **kwargs):
     world.add_body(name, color=np.ones(4))
     pose2d_on_surface(world, name, COUNTERS[counter], **kwargs)
     return name
+
+def pose2d_on_surface(world, entity_name, surface_name, pose2d=(0., 0., 0.)):
+    x, y, yaw = pose2d
+    body = world.get_body(entity_name)
+    surface_aabb = compute_surface_aabb(world, surface_name)
+    z = stable_z_on_aabb(body, surface_aabb)
+    pose = Pose(Point(x, y, z), Euler(yaw=yaw))
+    set_pose(body, pose)
+    return pose
+
+add_sugar_box = lambda world, **kwargs: add_ycb(world, 'sugar_box', **kwargs)
+add_spam_box = lambda world, **kwargs: add_ycb(world, 'potted_meat_can', **kwargs)
+
+def get_sample_fn(body, joints, custom_limits={}, **kwargs):
+    lower_limits, upper_limits = get_custom_limits(body, joints, custom_limits, circular_limits=CIRCULAR_LIMITS)
+    generator = interval_generator(lower_limits, upper_limits, **kwargs)
+    def fn():
+        return tuple(next(generator))
+    return fn
 
 def ycb_type_from_file(path):
     return path.split('_', 1)[-1]
@@ -621,4 +641,10 @@ def translate_linearly(world, distance):
     pos = np.array([x, y])
     goal_pos = pos + distance * unit_from_theta(theta)
     goal_pose = np.append(goal_pos, [theta])
+    return goal_pose
+
+def rotate_robot(world, angle):
+    x, y, theta = get_joint_positions(world.robot, world.base_joints)
+    pos = np.array([x, y])
+    goal_pose = np.append(pos, [theta + angle])
     return goal_pose

@@ -1,86 +1,120 @@
 import time
-from pybullet_tools.utils import set_joint_positions
-from src.utils import rotate_robot, translate_linearly, add_ycb
+from pybullet_tools.utils import set_joint_positions, set_pose, get_link_pose
+from pybullet_tools.ikfast.franka_panda.ik import PANDA_INFO
+from src.utils import rotate_robot, translate_linearly
 from constants import *
 from rrt import *
 
 class Robot:
 
-    def move_base(self, world):
+    def __init__(self, world):
+        self.world = world
+        self.tool_link = link_from_name(world.robot, "panda_hand")
+        self.ik_joints = get_ik_joints(world.robot, PANDA_INFO, self.tool_link)
+        self.sugar_box = self.world.get_body("sugar_box0")
+        self.spam_box = self.world.get_body("potted_meat_can1")
+
+        self.function_map = {
+            "open_storage":     {"drawer": self.open_drawer},
+            "close_storage":    {"drawer": self.close_drawer},
+            "pick_up_static":   {"sugar":  self.grab_sugar,  "spam": self.grab_spam},
+            "pick_up_openable": {"sugar":  self.grab_sugar,  "spam": self.grab_spam},
+            "place_openable":   {"sugar":  self.place_sugar, "spam": self.place_spam},
+            "place_static":     {"sugar":  self.place_sugar, "spam": self.place_spam},
+        }
+
+    def move_base(self):
         for _ in range(45):
-            goal_pos = rotate_robot(world, -0.01)
-            set_joint_positions(world.robot, world.base_joints, goal_pos)
+            goal_pos = rotate_robot(self.world, -0.01)
+            set_joint_positions(self.world.robot, self.world.base_joints, goal_pos)
             time.sleep(MOVE_SLEEP)
         for _ in range(140):
-            goal_pos = translate_linearly(world, 0.01)
-            set_joint_positions(world.robot, world.base_joints, goal_pos)
+            goal_pos = translate_linearly(self.world, 0.01)
+            set_joint_positions(self.world.robot, self.world.base_joints, goal_pos)
             time.sleep(MOVE_SLEEP)
         for _ in range(45):
-            goal_pos = rotate_robot(world, 0.01)
-            set_joint_positions(world.robot, world.base_joints, goal_pos)
+            goal_pos = rotate_robot(self.world, 0.01)
+            set_joint_positions(self.world.robot, self.world.base_joints, goal_pos)
             time.sleep(MOVE_SLEEP)
-        world.open_gripper()
+        self.world.open_gripper()
 
-    def grab_sugar(self, world, ik_joints):
+    def move_joint_init(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(world, GRAB_SUGAR_JOINT)
+        path = TrajectoryGenerator().rrt(self.world, INIT_JOINT)
         for point in path:
-            set_joint_positions(world.robot, ik_joints, point)
+            set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
-        world.close_gripper()
 
-    def place_sugar(self, world, ik_joints):
+    def grab_sugar(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(world, PLACE_SUGAR_JOINT)
+        path = TrajectoryGenerator().rrt(self.world, GRAB_SUGAR_JOINT)
         for point in path:
-            set_joint_positions(world.robot, ik_joints, point)
+            set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
-        world.open_gripper()
+        self.world.close_gripper()
+        set_pose(self.sugar_box, get_link_pose(self.world.robot, self.tool_link))
 
-    def grab_spam(self, world, ik_joints):
+    def place_sugar(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(world, GRAB_SPAM_JOINT)
+        path = TrajectoryGenerator().rrt(self.world, PLACE_SUGAR_JOINT)
         for point in path:
-            set_joint_positions(world.robot, ik_joints, point)
+            set_pose(self.sugar_box, get_link_pose(self.world.robot, self.tool_link))
+            set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
-        world.close_gripper()
+        self.world.open_gripper()
+        set_pose(self.sugar_box, MOVED_SUGAR_POSE)
 
-    def place_spam(self, world, ik_joints):
+    def grab_spam(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(world, STORE_SPAM_JOINT)
+        path = TrajectoryGenerator().rrt(self.world, GRAB_SPAM_JOINT)
         for point in path:
-            set_joint_positions(world.robot, ik_joints, point)
+            set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
-        world.open_gripper()
+        self.world.close_gripper()
+        set_pose(self.spam_box, get_link_pose(self.world.robot, self.tool_link))
 
-    def open_drawer(self, world, ik_joints):
+    def place_spam(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(world, DRAWER_CLOSED_JOINT)
+        path = TrajectoryGenerator().rrt(self.world, STORE_SPAM_JOINT)
         for point in path:
-            set_joint_positions(world.robot, ik_joints, point)
+            set_pose(self.spam_box, get_link_pose(self.world.robot, self.tool_link))
+            set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
-        world.close_gripper()
+        self.world.open_gripper()
+        set_pose(self.spam_box, MOVED_SPAM_POSE)
 
+    def open_drawer(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(world, DRAWER_OPEN_JOINT)
+        path = TrajectoryGenerator().rrt(self.world, DRAWER_CLOSED_JOINT)
         for point in path:
-            set_joint_positions(world.robot, ik_joints, point)
+            set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
-        world.open_gripper()
-        world.open_drawer()
-
-    def close_drawer(self, world, ik_joints):
-        time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(world, DRAWER_OPEN_JOINT)
-        for point in path:
-            set_joint_positions(world.robot, ik_joints, point)
-            time.sleep(JOINT_MOVE_SLEEP)
-        world.close_gripper()
-        world.close_drawer()
+        self.world.close_gripper()
 
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(world, DRAWER_CLOSED_JOINT)
+        path = TrajectoryGenerator().rrt(self.world, DRAWER_OPEN_JOINT)
         for point in path:
-            set_joint_positions(world.robot, ik_joints, point)
+            set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
-        world.open_gripper()
+        self.world.open_gripper()
+        self.world.open_drawer()
+
+    def close_drawer(self):
+        time.sleep(ACTION_SLEEP)
+        path = TrajectoryGenerator().rrt(self.world, DRAWER_OPEN_JOINT)
+        for point in path:
+            set_joint_positions(self.world.robot, self.ik_joints, point)
+            time.sleep(JOINT_MOVE_SLEEP)
+        set_pose(self.spam_box, STORED_SPAM_POSE)
+        self.world.close_gripper()
+        self.world.close_drawer()
+
+        time.sleep(ACTION_SLEEP)
+        path = TrajectoryGenerator().rrt(self.world, DRAWER_CLOSED_JOINT)
+        for point in path:
+            set_joint_positions(self.world.robot, self.ik_joints, point)
+            time.sleep(JOINT_MOVE_SLEEP)
+        self.world.open_gripper()
+
+    def act(self, act_name, act_param):
+        self.function_map[act_name][act_param]()

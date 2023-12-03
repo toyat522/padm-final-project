@@ -354,9 +354,14 @@ class World(object):
         set_joint_position(self.kitchen, joint, self.closed_conf(joint))
     def open_door(self, joint):
         set_joint_position(self.kitchen, joint, self.open_conf(joint))
+    def close_drawer(self):
+        joint = joint_from_name(self.kitchen, "indigo_drawer_top_joint")
+        set_joint_position(self.kitchen, joint, self.closed_conf(joint))
     def open_drawer(self):
         joint = joint_from_name(self.kitchen, "indigo_drawer_top_joint")
         set_joint_position(self.kitchen, joint, self.open_conf(joint))
+
+
 
     #########################
 

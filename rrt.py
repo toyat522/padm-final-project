@@ -12,7 +12,6 @@ from constants import *
 
 def get_sample_fn(body, joints, custom_limits={}, **kwargs):
     lower_limits, upper_limits = get_custom_limits(body, joints, custom_limits, circular_limits=CIRCULAR_LIMITS)
-    print("limits:", lower_limits, upper_limits)
     generator = interval_generator(lower_limits, upper_limits, **kwargs)
     def fn():
         return tuple(next(generator))
@@ -27,14 +26,6 @@ class Tree:
     def add_child(self, child):
         self.children.append(child)
         child.parent = self
-    
-    def set_parent(self, parent):
-        parent.add_child(self)
-        
-    @property
-    def size(self):
-        if len(self.children) == 0: return 1
-        return sum([child.size for child in self.children]) + 1
 
 class TrajectoryGenerator:
 

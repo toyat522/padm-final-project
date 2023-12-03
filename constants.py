@@ -1,15 +1,19 @@
 import numpy as np
 
-SUGAR_BOX_POSE = (-0.15, 0.65, np.pi / 4) # Starting position of sugar box
-SPAM_BOX_POSE  = (0.2, 1.1, np.pi / 4)    # Starting position of spam box
-MOVE_SLEEP     = 0.03                     # Sleep time for translation (for animation purposes)
-POS_STEP_SIZE  = 0.01                     # Step size of robot arm interpolation and RRT
+SUGAR_BOX_POSE   = (-0.1, 0.65, np.pi / 4) # Starting position of sugar box
+SPAM_BOX_POSE    = (0.2, 1.1, np.pi / 4)    # Starting position of spam box
+#MOVE_SLEEP       = 0.03                     # Sleep time for translation (for animation purposes)
+MOVE_SLEEP       = 0
+JOINT_MOVE_SLEEP = 0.05
+JOINT_STEP_SIZE  = 0.02                     # Step size of robot arm interpolation and RRT
+GOAL_SAMPLE      = 10                        # Sample goal every X times
+GOAL_THRESHOLD   = 0.1                      # If distance less than this, then it is in goal state
 
-GRAB_SUGAR_JOINT    = (-0.07, np.pi / 2, np.pi, 0, np.pi / 4, np.pi, np.pi)
-PLACE_SUGAR_JOINT   = (-np.pi / 5, np.pi / 2, np.pi, 0, np.pi / 4, np.pi, np.pi)
-GRAB_SPAM_JOINT     = (-np.pi / 5 + 0.05, 7 * np.pi / 40, 0, -12 * np.pi / 20, -3 * np.pi / 4, 3 * np.pi / 4, np.pi)
-DRAWER_CLOSED_JOINT = (-7 * np.pi / 10 + 0.05, 3 * np.pi / 5, 5 * np.pi / 12 + 0.05, -3 * np.pi / 5, -3 * np.pi / 4, 3 * np.pi / 4, np.pi)
-DRAWER_OPEN_JOINT   = (-np.pi + 0.2, 3 * np.pi / 5, np.pi / 3, -3 * np.pi / 4 + 0.1, -3 * np.pi / 4, 7 * np.pi / 8, np.pi)
-STORE_SPAM_JOINT    = (-7 * np.pi / 8 + 0.2, 3 * np.pi / 8, np.pi / 2, -3 * np.pi / 4, -np.pi / 4, 7 * np.pi / 8, np.pi)
-
+# Hard-coded joints
+GRAB_SUGAR_JOINT    = (-0.10029298683257405, 0.8075911195804472, 0.06859836909844828, -1.4332957958078696, 0.019711396650709645, 3.024185878659845, 0.6934382572596789)
+PLACE_SUGAR_JOINT   = (-0.8333839072116455, 0.8531772629931089, 0.4617390279322891, -1.381649993484035, 0.30737591885150817, 2.8317178374508676, -0.11349712635040898)
+GRAB_SPAM_JOINT     = (-0.2952415992141341, 0.7212760573498352, -0.5825837608323721, -1.9038112672075966, 2.43044497001763, 1.7815317165161315, -1.6864013281698946)
+DRAWER_CLOSED_JOINT = (-1.338462590924967, 1.0771823871221202, 0.18560027115857658, -1.5159392166440764, 1.7676538992294342, 1.87285428791979, -0.2862073274847683)
+DRAWER_OPEN_JOINT   = (-1.1610222558828878, 1.0920227062422998, -0.5515011835314367, -1.7143433296557067, 1.9039078394879425, 1.1901625109211063, -0.28388411885807097)
+STORE_SPAM_JOINT    = (0.8141463627352259, -1.7561537326062215, -1.7082003565419186, -1.9041165022131183, -0.06483606045010992, 2.7332450779369095, -0.954724282200727)
 

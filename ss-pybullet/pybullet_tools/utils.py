@@ -1,4 +1,4 @@
-from __future__ import print_function
+#from __future__ import print_function
 
 import colorsys
 import inspect
@@ -2589,6 +2589,7 @@ def pairwise_collision(body1, body2, **kwargs):
     if isinstance(body1, tuple) or isinstance(body2, tuple):
         body1, links1 = expand_links(body1)
         body2, links2 = expand_links(body2)
+        print(links2)
         return any_link_pair_collision(body1, links1, body2, links2, **kwargs)
     return body_collision(body1, body2, **kwargs)
 

@@ -1,21 +1,22 @@
+import os
+import sys
 import math
 
-from pybullet_tools.utils import set_pose, Pose, Point, Euler, multiply, get_pose, get_point, create_box, set_all_static, WorldSaver, create_plane, COLOR_FROM_NAME, stable_z_on_aabb, pairwise_collision, elapsed_time, get_aabb_extent, get_aabb, create_cylinder, set_point, get_function_name, wait_for_user, dump_world, set_random_seed, set_numpy_seed, get_random_seed, get_numpy_seed, link_from_name, get_movable_joints, get_joint_name
-from pybullet_tools.utils import CIRCULAR_LIMITS, get_custom_limits, set_joint_positions, interval_generator, get_link_pose, interpolate_poses
+sys.setrecursionlimit(1500)
+sys.path.extend(os.path.abspath(os.path.join(os.getcwd(), d)) for d in ['pddlstream', 'ss-pybullet'])
 
-from pybullet_tools.ikfast.franka_panda.ik import PANDA_INFO, FRANKA_URDF
-from pybullet_tools.ikfast.ikfast import get_ik_joints, closest_inverse_kinematics
-from src.world import World
-from src.utils import JOINT_TEMPLATE, BLOCK_SIZES, BLOCK_COLORS, COUNTERS, \
-    ALL_JOINTS, compute_surface_aabb, get_sample_fn, \
-    BLOCK_TEMPLATE, name_from_type, GRASP_TYPES, SIDE_GRASP, joint_from_name, \
-    STOVES, TOP_GRASP, randomize, LEFT_DOOR, point_from_pose, translate_linearly, \
+from pybullet_tools.utils import CIRCULAR_LIMITS, link_from_name, get_custom_limits, interval_generator, get_joint_positions, set_renderer, set_joint_positions, pairwise_collision
+from pybullet_tools.ikfast.franka_panda.ik import PANDA_INFO
+from pybullet_tools.ikfast.ikfast import get_ik_joints
+from constants import *
 
-
-from pybullet_tools.utils import CIRCULAR_LIMITS, get_custom_limits, set_joint_positions, interval_generator, get_link_pose, interpolate_poses
-
-GOAL_SAMPLE = 2
-POS_STEP_SIZE = 0.01
+def get_sample_fn(body, joints, custom_limits={}, **kwargs):
+    lower_limits, upper_limits = get_custom_limits(body, joints, custom_limits, circular_limits=CIRCULAR_LIMITS)
+    print("limits:", lower_limits, upper_limits)
+    generator = interval_generator(lower_limits, upper_limits, **kwargs)
+    def fn():
+        return tuple(next(generator))
+    return fn
 
 class Tree:
     def __init__(self, point):
@@ -37,45 +38,42 @@ class Tree:
 
 class TrajectoryGenerator:
 
-    def __init__(self, world):
-        self.world = world
-        self.tool_link = link_from_name(world.robot, 'panda_hand')
-        self.sample_free = get_sample_fn(world.robot, world.arm_joints)
+    def rrt(self, world, goal_point):
+        tool_link = link_from_name(world.robot, 'panda_hand')
+        joints = get_ik_joints(world.robot, PANDA_INFO, tool_link)
+        sample_free = get_sample_fn(world.robot, world.arm_joints)
+        set_renderer(False)
 
-    def rrt(self, goal_pose):
-        start_pose = get_link_pose(self.world.robot, self.tool_link)
-        tree = Tree(start_pose)
+        start_point = get_joint_positions(world.robot, world.arm_joints)
+        tree = Tree(start_point)
+        nodes = [tree]
         count = 1
         while True:
-            rand_point = self.sample_free(end_region) if count % GOAL_SAMPLE == 0 else sample_free(bounds) # goal biasing
-            nearest = find_nearest(tree, rand_point)
-            new_point = steer(nearest.point, rand_point)
-            if obstacle_free(environment, radius, nearest.point, new_point):
+            rand_point = goal_point if count % GOAL_SAMPLE == 0 else sample_free() # Goal biasing
+            nearest = self.find_nearest(tree, rand_point)
+            new_point = self.steer(nearest.point, rand_point)
+            if self.obstacle_free(world, joints, new_point):
                 last_node = Tree(new_point)
+                nodes.append(last_node)
                 nearest.add_child(last_node)
-                if end_region.contains(Point(new_point)): break
+                if math.dist(new_point, goal_point) <= GOAL_THRESHOLD: break # In goal state
             count += 1
-        final_path = find_path(last_node)
+        set_joint_positions(world.robot, joints, start_point)
+        set_renderer(True)
+        return self.find_path(last_node)
 
-        return final_path
-
-    def find_nearest(tree, point):
+    def find_nearest(self, tree, point):
         if len(tree.children) == 0: return tree
-        return min([tree] + [find_nearest(child, point) for child in tree.children], key=lambda x: math.dist(point, x.point))
+        return min([tree] + [self.find_nearest(child, point) for child in tree.children], key=lambda x: math.dist(point, x.point))
         
     def steer(self, nearest_point, rand_point):
         distance = math.dist(nearest_point, rand_point)
-        if distance <= DIST_LIMIT:
-            return rand_point
-        new_x = (rand_point[0] - nearest_point[0]) * (DIST_LIMIT / distance) + nearest_point[0]
-        new_y = (rand_point[1] - nearest_point[1]) * (DIST_LIMIT / distance) + nearest_point[1]
-        return new_x, new_y
+        if distance <= JOINT_STEP_SIZE: return rand_point
+        return tuple((rand_point[i] - nearest_point[i]) * (JOINT_STEP_SIZE / distance) + nearest_point[i] for i in range(7))
 
-    def obstacle_free(environment, radius, nearest_point, new_point):
-        line = LineString((nearest_point, new_point)).buffer(radius, resolution=3)
-        for obs in environment.obstacles:
-            if line.intersects(obs): return False
-        return True
+    def obstacle_free(self, world, joints, point):
+        set_joint_positions(world.robot, joints, point)
+        return not pairwise_collision(world.robot, world.kitchen)
 
     def find_path(self, goal):
         curr = goal
@@ -85,9 +83,3 @@ class TrajectoryGenerator:
             path.append(curr.point)
         path.reverse()
         return path
-
-    def path_length(self, path):
-        length = 0
-        for i in range(len(path) - 1):
-            length += math.dist(path[i], path[i + 1])
-        return length

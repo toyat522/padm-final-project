@@ -1,10 +1,13 @@
 import numpy as np
 
+# For animation purposes
+JOINT_MOVE_SLEEP = 0.04                    # Sleep time between joint movements
+ACTION_SLEEP     = 1                       # Sleep time between actions
+MOVE_SLEEP       = 0.03                    # Sleep time for translation (for animation purposes)
+
+# Important constants
 SUGAR_BOX_POSE   = (-0.1, 0.65, np.pi / 4) # Starting position of sugar box
 SPAM_BOX_POSE    = (0.2, 1.1, np.pi / 4)   # Starting position of spam box
-MOVE_SLEEP       = 0.03                    # Sleep time for translation (for animation purposes)
-ACTION_SLEEP     = 1                       # Sleep time between actions
-JOINT_MOVE_SLEEP = 0.04
 JOINT_STEP_SIZE  = 0.02                    # Step size of robot arm interpolation and RRT
 GOAL_SAMPLE      = 15                      # Sample goal every X times
 GOAL_THRESHOLD   = 0.15                    # If distance less than this, then it is in goal state

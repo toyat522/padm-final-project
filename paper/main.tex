@@ -1,15 +1,28 @@
 \documentclass{article}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \usepackage[utf8]{inputenc}
 \usepackage{authblk}
 \usepackage{setspace}
 \usepackage[margin=1.25in]{geometry}
 \usepackage{graphicx}
-\graphicspath{ {./figures/} }
 \usepackage{subcaption}
 \usepackage{amsmath}
 \usepackage{lineno}
 \usepackage{tikz-cd}
+\usepackage{hyperref}
 \usepackage[style=nejm, citestyle=numeric-comp, sorting=none]{biblatex}
+
+\graphicspath{ {./figures/} }
+\hypersetup{
+    colorlinks=true,
+    citecolor=black,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
 \addbibresource{main.bib}
 
 %%%%%% Document Setup %%%%%%
@@ -33,7 +46,7 @@ Activity planing, motion planning, and trajectory optimization for a robotic arm
 \begin{figure}[h]
     \centering
     \includegraphics[width=190px]{sim_env.jpg}
-    \caption{The kitchen simulation environment.}
+    \caption{The kitchen simulation environment}
     \label{fig:sim_env}
 \end{figure}
 
@@ -99,12 +112,90 @@ Comparing the performance of BFS and FF Heuristic Planner, on the contrary to my
 
 \section{Motion Planning}
 
+To view the sample-based motion planner in action, see \href{https://drive.google.com/file/d/1sknWGIKYpLsJexYLzeWbSfdt8TrVTznH/view?usp=sharing}{FF Heuristic Planner and RRT Trajectory Generator} or go to the following url: \url{https://drive.google.com/file/d/1sknWGIKYpLsJexYLzeWbSfdt8TrVTznH/view?usp=drive_link}.
+
+\subsection{Environment Assumptions}
+
+Hard-coded values can be found in \texttt{constants.py} and includes:
+\begin{itemize}
+    \item The initial 2D poses of the spam and sugar boxes (were not modified significantly from the original positions, simply moved the sugar box closer for the robot arm to reach)
+    \item The 3D poses of the spam and sugar boxes after moved by the robot
+    \item The 7D goal joint position vectors for the different actions
+    \item \texttt{JOINT\_STEP\_SIZE}, \texttt{GOAL\_SAMPLE}, and \texttt{GOAL\_THRESHOLD} (explained in \href{sec:rrt}{Trajectory Generation using RRT})
+\end{itemize}
+
+In addition, the following assumptions were made when implementing the motion planner:
+\begin{itemize}
+    \item The sugar/spam box attaches to the end-effector once the ``grab" action finishes
+    \item The drawer opens after the ``open drawer" action ends and closes before the ``close drawer" action begins
+\end{itemize}
+
+Importantly, the collision detection in my RRT implementation is simplified from traditional methods. Typically, when checking if a newly sampled point can be reached without collisions, RRT calculates whether the line between the new point and its nearest point in the tree intersects with an obstacle. However, in my implementation, I only check whether the new sampled point is inside an obstacle, meaning the robot collides with an object in the kitchen environment. This simplification can be made because the robot bodies are large and the distance between each node in the tree are small, meaning if a new joint configuration does not cause a collision, it is almost guaranteed that all joint configurations between the new point and its closest point are valid.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=190px]{rrt_collision.jpg}
+    \caption{Collision detection in RRT}
+    \label{fig:rrt_collision}
+\end{figure}
+
+
+\subsection{Trajectory Generation using RRT}
+\label{sec:rrt}
+
+The sample-based motion planning algorithm is written in \texttt{rrt.py}. \texttt{get\_sample\_fn} returns a sampling function that returns a random valid joint configuration $x_\text{rand}$. I also defined a class \texttt{Tree} which keeps track of its \texttt{parent}, \texttt{children}, and value (\texttt{point}), which is the 7D joint configuration. \texttt{Tree} has function \texttt{add\_child}, which appends a new \texttt{Tree} to its \texttt{children} and sets the child's \texttt{parent} to itself. 
+
+Class \texttt{TrajectoryGenerator} contains the main motion planning algorithm in the \texttt{rrt} method. It also includes four helper functions:
+\begin{enumerate}
+    \item \texttt{find\_nearest}: returns $x_\text{nearest}$, the node in the tree closest to $x_\text{rand}$ by recursively traversing the tree.
+    \item \texttt{steer}: creates a straight line from $x_\text{nearest}$ to $x_\text{rand}$ limited to length \texttt{JOINT\_STEP\_SIZE}. Returns this new point $x_\text{new}$.
+    \item \texttt{obstacle\_free}: returns true if the input joint configuration does not cause the robot to collide with a kitchen object.
+    \item \texttt{find\_path}: returns a list of joint configurations from the initial state to the goal state by following the parent pointers.
+\end{enumerate}
+
+RRT is then implemented as follows using the helper functions:
+\begin{algorithm}
+\caption{Rapidly-Exploring Random Tree (RRT)}\label{alg:rrt}
+\begin{algorithmic}
+\State $\mathtt{tree} \gets \mathtt{Tree()}$
+\State $i \gets 1$
+\While{\texttt{True}}
+    \If{$i\mod\mathtt{GOAL\_SAMPLE}=0$}
+        \State $x_\text{rand} \gets x_\text{goal}$
+    \Else
+        \State $x_\text{rand} \gets \mathtt{sample\_free()}$
+    \EndIf
+    \State $x_\text{nearest} \gets \mathtt{find\_nearest(tree}, x_\text{rand})$
+    \State $x_\text{new} \gets \mathtt{steer}(x_\text{nearest}, x_\text{rand})$
+    \If{$\mathtt{obstacle\_free}(x_\text{new})$}
+    \State $x_\text{last} \gets \mathtt{Tree}(x_\text{new})$
+        \State $x_\text{nearest}\mathtt{.add\_child}(x_\text{last})$
+        \If{$\mathtt{dist}(x_\text{new}, x_\text{goal})\le\mathtt{GOAL\_THRESHOLD}$}
+            \State \Return{$\mathtt{find\_path}(x_\text{last})$}
+        \EndIf 
+        \State $i \gets i + 1$
+    \EndIf 
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+
+Instead of getting a random sample every time, the algorithm uses the goal state as the ``random" value every \texttt{GOAL\_SAMPLE} cycles to bias the tree towards the goal. Additionally, we determine whether $x_\text{new}$ is in the goal state by checking if the euclidian distance between $x_\text{new}$ and $x_\text{goal}$ is less than \texttt{GOAL\_THRESHOLD}. 
+
+While the algorithm successfully generates a trajectory as shown in the video, it can be slow depending on the initial and goal state. Constants needed to be tuned to increase the performance of the algorithm.
+
+\subsection{Integration with the Activity Planner}
+
+The \texttt{robot.py} file includes a \texttt{Robot} class with methods for each action in the PDDL domain. It also includes methods to move the robot base closer to the objects and the robot arm back to the initial state. Finally, the dictionary \texttt{function\_map} maps PDDL actions to its corresponding methods, and the \texttt{act} method uses this dictionary to perform a task based on the input PDDL action.
+
+The overall plan execution is written in \texttt{plan\_executor.py}. The code initially solves the activity planning problem using the FF Heuristic Planner, which returns a list of tasks to execute. \texttt{plan\_executor} simply iterates through this list and calls the \texttt{Robot().act} method for each action to fully execute the plan.
+
 \section{Trajectory Optimization}
+
+\section{Conclusion}
 
 %%% TODO: EDIT REFERENCES %%%
 \cite{Cui1}
 
-\section{Conclusion}
 
 \printbibliography
 

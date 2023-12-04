@@ -36,6 +36,7 @@ def main():
     world._update_initial()
 
     # Execute plan
+    wait_for_user()
     robot = Robot(world)
     robot.move_base()
     for act in plan:

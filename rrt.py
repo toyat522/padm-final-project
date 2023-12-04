@@ -37,7 +37,6 @@ class TrajectoryGenerator:
 
         start_point = get_joint_positions(world.robot, world.arm_joints)
         tree = Tree(start_point)
-        nodes = [tree]
         count = 1
         while True:
             rand_point = goal_point if count % GOAL_SAMPLE == 0 else sample_free() # Goal biasing
@@ -45,7 +44,6 @@ class TrajectoryGenerator:
             new_point = self.steer(nearest.point, rand_point)
             if self.obstacle_free(world, joints, new_point):
                 last_node = Tree(new_point)
-                nodes.append(last_node)
                 nearest.add_child(last_node)
                 if math.dist(new_point, goal_point) <= GOAL_THRESHOLD: break # In goal state
             count += 1

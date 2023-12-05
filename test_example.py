@@ -15,6 +15,7 @@ from pybullet_tools.ikfast.ikfast import get_ik_joints, closest_inverse_kinemati
 
 from src.world import World
 from src.utils import JOINT_TEMPLATE, BLOCK_SIZES, BLOCK_COLORS, COUNTERS, ALL_JOINTS, compute_surface_aabb, rotate_robot, BLOCK_TEMPLATE, name_from_type, GRASP_TYPES, SIDE_GRASP, joint_from_name, STOVES, TOP_GRASP, randomize, LEFT_DOOR, point_from_pose, translate_linearly, add_ycb
+from trajopt import TrajectoryOptimizer
 from constants import *
 from rrt import *
 
@@ -72,16 +73,24 @@ def main():
         time.sleep(MOVE_SLEEP)
 
     """ THIRD CHUNK OF CODE: MOVING THE ROBOT ARM """
+
+    wait_for_user()
+    trajopt = TrajectoryOptimizer(world)
+    path = trajopt.solve()
+    for joint in path:
+        set_joint_positions(world.robot, ik_joints, joint)
+        time.sleep(JOINT_MOVE_SLEEP) 
+
 #
 #    wait_for_user()
-    print("Open drawer")
-    world.open_drawer()
+#    print("Open drawer")
+#    world.open_drawer()
 #
 
 #    print("Going to use IK to go from a sample start state to a goal state\n")
 #    wait_for_user()
-    ik_joints = get_ik_joints(world.robot, PANDA_INFO, tool_link)
-    start_pose = get_link_pose(world.robot, tool_link)
+#    ik_joints = get_ik_joints(world.robot, PANDA_INFO, tool_link)
+#    start_pose = get_link_pose(world.robot, tool_link)
 #    print("Start pose:", start_pose)
 #    #end_pose = (0.45, 1.2, -0.65), (-0.5, -0.5, 0.5, 0.5) # Drawer closed
 #    end_pose = (0.75, 1.2, -0.65), (-0.5, -0.5, 0.5, 0.5) # Drawer opened
@@ -91,11 +100,11 @@ def main():
 #    else:
 #        print(conf)
 #        set_joint_positions(world.robot, ik_joints, conf)
-
-    wait_for_user()
-    set_joint_positions(world.robot, ik_joints, STORE_SPAM_JOINT)
-    set_pose(world.get_body("potted_meat_can1"), MOVED_SPAM_POSE)
-    print("pose:", get_link_pose(world.robot, tool_link))
+#
+#    wait_for_user()
+#    set_joint_positions(world.robot, ik_joints, STORE_SPAM_JOINT)
+#    set_pose(world.get_body("potted_meat_can1"), MOVED_SPAM_POSE)
+#    print("pose:", get_link_pose(world.robot, tool_link))
 
 #
 #

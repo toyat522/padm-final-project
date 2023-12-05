@@ -1,18 +1,24 @@
 import time
-from pybullet_tools.utils import set_joint_positions, set_pose, get_link_pose
+from pybullet_tools.utils import set_joint_positions, set_pose, get_link_pose, link_from_name
 from pybullet_tools.ikfast.franka_panda.ik import PANDA_INFO
+from pybullet_tools.ikfast.ikfast import get_ik_joints
 from src.utils import rotate_robot, translate_linearly
 from constants import *
-from rrt import *
+from rrt import TrajectoryGenerator
+from trajopt import TrajectoryOptimizer
 
 class Robot:
 
-    def __init__(self, world):
+    def __init__(self, world, use_trajopt=False):
         self.world = world
         self.tool_link = link_from_name(world.robot, "panda_hand")
         self.ik_joints = get_ik_joints(world.robot, PANDA_INFO, self.tool_link)
         self.sugar_box = self.world.get_body("sugar_box0")
         self.spam_box = self.world.get_body("potted_meat_can1")
+        if use_trajopt:
+            self.trajgen = TrajectoryOptimizer(world)
+        else:
+            self.trajgen = TrajectoryGenerator(world)
 
         self.function_map = {
             "open_storage":     {"drawer": self.open_drawer},
@@ -40,14 +46,14 @@ class Robot:
 
     def move_joint_init(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(self.world, INIT_JOINT)
+        path = self.trajgen.solve(INIT_JOINT)
         for point in path:
             set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
 
     def grab_sugar(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(self.world, GRAB_SUGAR_JOINT)
+        path = self.trajgen.solve(GRAB_SUGAR_JOINT)
         for point in path:
             set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
@@ -56,7 +62,7 @@ class Robot:
 
     def place_sugar(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(self.world, PLACE_SUGAR_JOINT)
+        path = self.trajgen.solve(PLACE_SUGAR_JOINT)
         for point in path:
             set_pose(self.sugar_box, get_link_pose(self.world.robot, self.tool_link))
             set_joint_positions(self.world.robot, self.ik_joints, point)
@@ -66,7 +72,7 @@ class Robot:
 
     def grab_spam(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(self.world, GRAB_SPAM_JOINT)
+        path = self.trajgen.solve(GRAB_SPAM_JOINT)
         for point in path:
             set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
@@ -75,7 +81,7 @@ class Robot:
 
     def place_spam(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(self.world, STORE_SPAM_JOINT)
+        path = self.trajgen.solve(STORE_SPAM_JOINT)
         for point in path:
             set_pose(self.spam_box, get_link_pose(self.world.robot, self.tool_link))
             set_joint_positions(self.world.robot, self.ik_joints, point)
@@ -85,14 +91,14 @@ class Robot:
 
     def open_drawer(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(self.world, DRAWER_CLOSED_JOINT)
+        path = self.trajgen.solve(DRAWER_CLOSED_JOINT)
         for point in path:
             set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
         self.world.close_gripper()
 
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(self.world, DRAWER_OPEN_JOINT)
+        path = self.trajgen.solve(DRAWER_OPEN_JOINT)
         for point in path:
             set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
@@ -101,7 +107,7 @@ class Robot:
 
     def close_drawer(self):
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(self.world, DRAWER_OPEN_JOINT)
+        path = self.trajgen.solve(DRAWER_OPEN_JOINT)
         for point in path:
             set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
@@ -110,7 +116,7 @@ class Robot:
         self.world.close_drawer()
 
         time.sleep(ACTION_SLEEP)
-        path = TrajectoryGenerator().rrt(self.world, DRAWER_CLOSED_JOINT)
+        path = self.trajgen.solve(DRAWER_CLOSED_JOINT)
         for point in path:
             set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)

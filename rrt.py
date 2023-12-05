@@ -29,25 +29,27 @@ class Tree:
 
 class TrajectoryGenerator:
 
-    def rrt(self, world, goal_point):
-        tool_link = link_from_name(world.robot, 'panda_hand')
-        joints = get_ik_joints(world.robot, PANDA_INFO, tool_link)
-        sample_free = get_sample_fn(world.robot, world.arm_joints)
-        set_renderer(False)
+    def __init__(self, world):
+        self.world = world
+        self.tool_link = link_from_name(world.robot, 'panda_hand')
+        self.ik_joints = get_ik_joints(world.robot, PANDA_INFO, self.tool_link)
+        self.sample_free = get_sample_fn(world.robot, world.arm_joints)
 
-        start_point = get_joint_positions(world.robot, world.arm_joints)
+    def solve(self, goal_point):
+        set_renderer(False)
+        start_point = get_joint_positions(self.world.robot, self.world.arm_joints)
         tree = Tree(start_point)
         count = 1
         while True:
-            rand_point = goal_point if count % GOAL_SAMPLE == 0 else sample_free() # Goal biasing
+            rand_point = goal_point if count % GOAL_SAMPLE == 0 else self.sample_free() # Goal biasing
             nearest = self.find_nearest(tree, rand_point)
             new_point = self.steer(nearest.point, rand_point)
-            if self.obstacle_free(world, joints, new_point):
+            if self.obstacle_free(new_point):
                 last_node = Tree(new_point)
                 nearest.add_child(last_node)
                 if math.dist(new_point, goal_point) <= GOAL_THRESHOLD: break # In goal state
             count += 1
-        set_joint_positions(world.robot, joints, start_point)
+        set_joint_positions(self.world.robot, self.ik_joints, start_point)
         set_renderer(True)
         return self.find_path(last_node)
 
@@ -60,9 +62,9 @@ class TrajectoryGenerator:
         if distance <= JOINT_STEP_SIZE: return rand_point
         return tuple((rand_point[i] - nearest_point[i]) * (JOINT_STEP_SIZE / distance) + nearest_point[i] for i in range(7))
 
-    def obstacle_free(self, world, joints, point):
-        set_joint_positions(world.robot, joints, point)
-        return not pairwise_collision(world.robot, world.kitchen)
+    def obstacle_free(self, point):
+        set_joint_positions(self.world.robot, self.ik_joints, point)
+        return not pairwise_collision(self.world.robot, self.world.kitchen)
 
     def find_path(self, goal):
         curr = goal

@@ -37,7 +37,7 @@ def main():
 
     # Execute plan
     wait_for_user()
-    robot = Robot(world)
+    robot = Robot(world, use_trajopt=True)
     robot.move_base()
     for act in plan:
         print(act)

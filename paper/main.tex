@@ -145,7 +145,7 @@ Importantly, the collision detection in my RRT implementation is simplified from
 
 The sample-based motion planning algorithm is written in \texttt{rrt.py}. \texttt{get\_sample\_fn} returns a sampling function that returns a random valid joint configuration $x_\text{rand}$. I also defined a class \texttt{Tree} which keeps track of its \texttt{parent}, \texttt{children}, and value (\texttt{point}), which is the 7D joint configuration. \texttt{Tree} has function \texttt{add\_child}, which appends a new \texttt{Tree} to its \texttt{children} and sets the child's \texttt{parent} to itself. 
 
-Class \texttt{TrajectoryGenerator} contains the main motion planning algorithm in the \texttt{rrt} method. It also includes four helper functions:
+Class \texttt{TrajectoryGenerator} contains the main motion planning algorithm in the \texttt{solve} method. It also includes four helper functions:
 \begin{enumerate}
     \item \texttt{find\_nearest}: returns $x_\text{nearest}$, the node in the tree closest to $x_\text{rand}$ by recursively traversing the tree.
     \item \texttt{steer}: creates a straight line from $x_\text{nearest}$ to $x_\text{rand}$ limited to length \texttt{JOINT\_STEP\_SIZE}. Returns this new point $x_\text{new}$.

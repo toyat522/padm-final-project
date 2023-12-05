@@ -3,8 +3,7 @@ import numpy as np
 # For animation purposes
 JOINT_MOVE_SLEEP = 0.04                    # Sleep time between joint movements
 ACTION_SLEEP     = 1                       # Sleep time between actions
-#MOVE_SLEEP       = 0.03                    # Sleep time for translation (for animation purposes)
-MOVE_SLEEP       = 0                    # Sleep time for translation (for animation purposes)
+MOVE_SLEEP       = 0.03                    # Sleep time for translation (for animation purposes)
 
 # Important constants
 SUGAR_BOX_POSE   = (-0.1, 0.65, np.pi / 4) # Starting position of sugar box

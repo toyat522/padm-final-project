@@ -17,7 +17,7 @@ class TrajectoryOptimizer:
         self.tool_link = link_from_name(world.robot, 'panda_hand')
         self.ik_joints = get_ik_joints(world.robot, PANDA_INFO, self.tool_link)
 
-    def solve(self, goal_joint):
+    def solve(self, goal_point):
         set_renderer(False)
         start_point = np.array(get_joint_positions(self.world.robot, self.world.arm_joints))
 
@@ -31,9 +31,12 @@ class TrajectoryOptimizer:
         q_vars = prog.NewContinuousVariables(PATH_LENGTH, num_joints, "q")
         time_var = prog.NewContinuousVariables(1, "time")[0]
 
+        # Set the linspace as the initial guess
+        prog.SetInitialGuess(q_vars, np.linspace(start_point, goal_point, PATH_LENGTH))
+
         # Set initial and final joint positions
         q0 = start_point                    # Initial joint positions
-        qf = np.array(goal_joint)  # Final joint positions
+        qf = np.array(goal_point)  # Final joint positions
 
         # Add constraints to ensure the initial and final joint positions and velocities
         for i in range(num_joints):

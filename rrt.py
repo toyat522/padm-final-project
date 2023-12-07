@@ -35,7 +35,7 @@ class TrajectoryGenerator:
         self.ik_joints = get_ik_joints(world.robot, PANDA_INFO, self.tool_link)
         self.sample_free = get_sample_fn(world.robot, world.arm_joints)
 
-    def solve(self, goal_point):
+    def solve(self, goal_point, *args):
         set_renderer(False)
         start_point = get_joint_positions(self.world.robot, self.world.arm_joints)
         tree = Tree(start_point)

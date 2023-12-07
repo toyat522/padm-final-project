@@ -74,12 +74,12 @@ def main():
 
     """ THIRD CHUNK OF CODE: MOVING THE ROBOT ARM """
 
-    wait_for_user()
-    trajopt = TrajectoryOptimizer(world)
-    path = trajopt.solve()
-    for joint in path:
-        set_joint_positions(world.robot, ik_joints, joint)
-        time.sleep(JOINT_MOVE_SLEEP) 
+#    wait_for_user()
+#    trajopt = TrajectoryOptimizer(world)
+#    path = trajopt.solve(DRAWER_CLOSED_JOINT)
+#    for joint in path:
+#        set_joint_positions(world.robot, ik_joints, joint)
+#        time.sleep(JOINT_MOVE_SLEEP) 
 
 #
 #    wait_for_user()
@@ -87,19 +87,20 @@ def main():
 #    world.open_drawer()
 #
 
-#    print("Going to use IK to go from a sample start state to a goal state\n")
-#    wait_for_user()
-#    ik_joints = get_ik_joints(world.robot, PANDA_INFO, tool_link)
-#    start_pose = get_link_pose(world.robot, tool_link)
-#    print("Start pose:", start_pose)
-#    #end_pose = (0.45, 1.2, -0.65), (-0.5, -0.5, 0.5, 0.5) # Drawer closed
-#    end_pose = (0.75, 1.2, -0.65), (-0.5, -0.5, 0.5, 0.5) # Drawer opened
-#    conf = next(closest_inverse_kinematics(world.robot, PANDA_INFO, tool_link, end_pose, max_time=0.05), None)
-#    if conf is None:
-#        print('Failure!')
-#    else:
-#        print(conf)
-#        set_joint_positions(world.robot, ik_joints, conf)
+    print("Going to use IK to go from a sample start state to a goal state\n")
+    wait_for_user()
+    ik_joints = get_ik_joints(world.robot, PANDA_INFO, tool_link)
+    start_pose = get_link_pose(world.robot, tool_link)
+    print("Start pose:", start_pose)
+    #end_pose = (0.45, 1.2, -0.65), (-0.5, -0.5, 0.5, 0.5) # Drawer closed
+    #end_pose = (0.75, 1.2, -0.65), (-0.5, -0.5, 0.5, 0.5) # Drawer opened
+    end_pose = (0.45, 1.2, -0.35), (-0.5, -0.5, 0.5, 0.5) # Drawer opened
+    conf = next(closest_inverse_kinematics(world.robot, PANDA_INFO, tool_link, end_pose, max_time=0.05), None)
+    if conf is None:
+        print('Failure!')
+    else:
+        print(conf)
+        set_joint_positions(world.robot, ik_joints, conf)
 #
 #    wait_for_user()
 #    set_joint_positions(world.robot, ik_joints, STORE_SPAM_JOINT)

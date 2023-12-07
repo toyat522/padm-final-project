@@ -1,4 +1,5 @@
 import time
+import numpy as np
 from pybullet_tools.utils import set_joint_positions, set_pose, get_link_pose, link_from_name
 from pybullet_tools.ikfast.franka_panda.ik import PANDA_INFO
 from pybullet_tools.ikfast.ikfast import get_ik_joints
@@ -15,6 +16,7 @@ class Robot:
         self.ik_joints = get_ik_joints(world.robot, PANDA_INFO, self.tool_link)
         self.sugar_box = self.world.get_body("sugar_box0")
         self.spam_box = self.world.get_body("potted_meat_can1")
+        self.use_trajopt = use_trajopt
         if use_trajopt:
             self.trajgen = TrajectoryOptimizer(world)
         else:
@@ -28,6 +30,14 @@ class Robot:
             "place_openable":   {"sugar":  self.place_sugar, "spam": self.place_spam},
             "place_static":     {"sugar":  self.place_sugar, "spam": self.place_spam},
         }
+
+    def get_init_guess(self, filename):
+        data = np.load(filename)
+        datasize = data.shape[0]
+        interp_data = np.zeros((PATH_LENGTH, NUM_JOINTS))
+        for i in range(NUM_JOINTS):
+            interp_data[:, i] = np.interp(np.linspace(0, datasize - 1, PATH_LENGTH), np.arange(0, datasize), data[:, i])
+        return interp_data
 
     def move_base(self):
         for _ in range(45):
@@ -53,7 +63,7 @@ class Robot:
 
     def grab_sugar(self):
         time.sleep(ACTION_SLEEP)
-        path = self.trajgen.solve(GRAB_SUGAR_JOINT)
+        path = self.trajgen.solve(GRAB_SUGAR_JOINT, self.get_init_guess("npy/to_sugar.npy"))
         for point in path:
             set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
@@ -62,7 +72,7 @@ class Robot:
 
     def place_sugar(self):
         time.sleep(ACTION_SLEEP)
-        path = self.trajgen.solve(PLACE_SUGAR_JOINT)
+        path = self.trajgen.solve(PLACE_SUGAR_JOINT, self.get_init_guess("npy/place_sugar.npy"))
         for point in path:
             set_pose(self.sugar_box, get_link_pose(self.world.robot, self.tool_link))
             set_joint_positions(self.world.robot, self.ik_joints, point)
@@ -81,7 +91,7 @@ class Robot:
 
     def place_spam(self):
         time.sleep(ACTION_SLEEP)
-        path = self.trajgen.solve(STORE_SPAM_JOINT)
+        path = self.trajgen.solve(STORE_SPAM_JOINT, self.get_init_guess("npy/place_spam.npy"))
         for point in path:
             set_pose(self.spam_box, get_link_pose(self.world.robot, self.tool_link))
             set_joint_positions(self.world.robot, self.ik_joints, point)
@@ -98,7 +108,7 @@ class Robot:
         self.world.close_gripper()
 
         time.sleep(ACTION_SLEEP)
-        path = self.trajgen.solve(DRAWER_OPEN_JOINT)
+        path = self.trajgen.solve(DRAWER_OPEN_JOINT, self.get_init_guess("npy/open_drawer.npy"))
         for point in path:
             set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
@@ -107,7 +117,7 @@ class Robot:
 
     def close_drawer(self):
         time.sleep(ACTION_SLEEP)
-        path = self.trajgen.solve(DRAWER_OPEN_JOINT)
+        path = self.trajgen.solve(DRAWER_OPEN_JOINT, self.get_init_guess("npy/to_drawer_open.npy"))
         for point in path:
             set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)
@@ -116,7 +126,7 @@ class Robot:
         self.world.close_drawer()
 
         time.sleep(ACTION_SLEEP)
-        path = self.trajgen.solve(DRAWER_CLOSED_JOINT)
+        path = self.trajgen.solve(DRAWER_CLOSED_JOINT, self.get_init_guess("npy/close_drawer.npy"))
         for point in path:
             set_joint_positions(self.world.robot, self.ik_joints, point)
             time.sleep(JOINT_MOVE_SLEEP)

@@ -5,7 +5,7 @@ import sys
 sys.path.extend(os.path.abspath(os.path.join(os.getcwd(), d)) for d in ['pddlstream', 'ss-pybullet'])
 
 from pydrake.solvers import MathematicalProgram, Solve
-from pybullet_tools.utils import CIRCULAR_LIMITS, link_from_name, get_custom_limits, get_joint_positions, set_joint_positions, pairwise_collision
+from pybullet_tools.utils import CIRCULAR_LIMITS, link_from_name, get_custom_limits, get_joint_positions
 from pybullet_tools.ikfast.franka_panda.ik import PANDA_INFO
 from pybullet_tools.ikfast.ikfast import get_ik_joints
 from constants import *
@@ -19,9 +19,6 @@ class TrajectoryOptimizer:
 
     def solve(self, goal_point, init_guess=None):
         start_point = np.array(get_joint_positions(self.world.robot, self.world.arm_joints))
-
-        # Define the number of joints and the number of time steps
-        NUM_JOINTS = 7
 
         # Create a MathematicalProgram
         prog = MathematicalProgram()
@@ -74,10 +71,3 @@ class TrajectoryOptimizer:
         q_opt = result.GetSolution(q_vars)
 
         return q_opt
-
-    def obstacle_free(self, q):
-        point = []
-        for val in q:
-            point.append(val.value())
-        set_joint_positions(self.world.robot, self.ik_joints, point)
-        return not pairwise_collision(self.world.robot, self.world.kitchen)

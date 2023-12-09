@@ -19,33 +19,35 @@
 
 \refsection{0}
   \datalist[entry]{none/global//global/global}
-    \entry{Cui1}{article}{}
+    \entry{Tedrake}{online}{}
       \name{author}{1}{}{%
-        {{hash=01472dcda2b2ae621e1173aeeb6ef0c4}{%
-           family={Cui},
-           familyi={C\bibinitperiod},
-           given={Tianhong},
-           giveni={T\bibinitperiod}}}%
+        {{hash=480d067fbc7c00be4a01a0e4902c984e}{%
+           family={Tedrake},
+           familyi={T\bibinitperiod},
+           given={Russ},
+           giveni={R\bibinitperiod}}}%
       }
-      \strng{namehash}{01472dcda2b2ae621e1173aeeb6ef0c4}
-      \strng{fullhash}{01472dcda2b2ae621e1173aeeb6ef0c4}
-      \strng{bibnamehash}{01472dcda2b2ae621e1173aeeb6ef0c4}
-      \strng{authorbibnamehash}{01472dcda2b2ae621e1173aeeb6ef0c4}
-      \strng{authornamehash}{01472dcda2b2ae621e1173aeeb6ef0c4}
-      \strng{authorfullhash}{01472dcda2b2ae621e1173aeeb6ef0c4}
+      \strng{namehash}{480d067fbc7c00be4a01a0e4902c984e}
+      \strng{fullhash}{480d067fbc7c00be4a01a0e4902c984e}
+      \strng{bibnamehash}{480d067fbc7c00be4a01a0e4902c984e}
+      \strng{authorbibnamehash}{480d067fbc7c00be4a01a0e4902c984e}
+      \strng{authornamehash}{480d067fbc7c00be4a01a0e4902c984e}
+      \strng{authorfullhash}{480d067fbc7c00be4a01a0e4902c984e}
       \field{sortinit}{1}
       \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{journaltitle}{Research}
-      \field{title}{Research: The First {S}cience {P}artner {J}ournal}
-      \field{type}{Journal Article}
-      \field{volume}{2018}
-      \field{year}{2018}
-      \field{pages}{1}
-      \range{pages}{1}
-      \verb{doi}
-      \verb 10.1155/2018/1340806
+      \field{title}{Robotic Manipulation Chapter 6: Motion Planning}
+      \field{urlday}{8}
+      \field{urlmonth}{12}
+      \field{urlyear}{2023}
+      \field{year}{2023}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://manipulation.csail.mit.edu/trajectories.html#section2
+      \endverb
+      \verb{url}
+      \verb https://manipulation.csail.mit.edu/trajectories.html#section2
       \endverb
     \endentry
   \enddatalist
